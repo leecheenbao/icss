@@ -1,96 +1,67 @@
---- 
-# 內部選課系統API清單
+## 課程管理系統
 
-### API 文件生成指令
-```sh
-apidoc -i . -o <output_directory>
+### 功能特點
+- 用戶認證和管理
+- 課程創建、更新和管理
+- 課程報名和取消
+- 推薦課程功能
+- 點數系統
+- OTP（一次性密碼）登錄
+
+### 技術棧
+- Node.js
+- Express.js
+- Sequelize ORM
+- JWT 認證
+- bcrypt 密碼加密
+- Multer 文件上傳
+- CSV 和 Excel 文件處理
+
+### 安裝步驟
+
+安裝依賴
+```
+npm install
 ```
 
-### 1. 用戶認證和管理
+運行應用
+```
+npm run start:local
+npm run start:stage
+npm run start:prod
+```
 
-[V] 01-01.註冊管理員角色
+### API 路由
+#### 用戶認證和管理
+- 註冊管理員：POST /api/v1/admin/register
+- 用戶註冊：POST /api/v1/register
+- 發送 OTP：POST /api/v1/auth/send-otp
+- 驗證 OTP：POST /api/v1/auth/verify-otp
+- 獲取用戶列表：GET /api/v1/admin/users
+- 獲取用戶資料：GET /api/v1/admin/users/:id
+- 更新用戶資料：PUT /api/v1/admin/users/:id
+#### 課程管理
+- 獲取所有課程：GET /api/v1/courses
+- 獲取單個課程：GET /api/v1/courses/info/:id
+- 創建課程：POST /api/v1/courses
+- 更新課程：PUT /api/v1/courses/:id
+- 下架課程：PUT /api/v1/courses/:id/close
+- 獲取推薦課程：GET /api/v1/courses/recommended
+- 推薦課程：POST /api/v1/courses/recommended
+- 上傳課程圖片：POST /api/v1/courses/upload
 
-[V] 01-02.一般用戶註冊
+### 數據模型
+主要的數據模型包括：
+User
+Course
+CourseRegistration
+RecommendedCourse
+Notification
+PointsTransaction
+這些模型之間的關係在 src/models/index.js 中定義。
 
-[V] 02-01.用戶登錄(一般)
+### 錯誤處理
+系統使用統一的錯誤處理機制，錯誤消息和狀態碼定義在 src/enum/commonEnum.js 中。
 
-[V] 02-02.發送 OTP
-
-[V] 02-03.驗證 OTP
-
-[V] 03.獲取用戶列表
-
-[V] 更新用戶信息
-
-### 2. 課程管理
-[V] 獲取所有課程列表
-
-[ ] 獲取可選課程列表（最多10個）
-
-[V] 獲取課程詳情
-
-[V] 新增課程
-
-[V] 報名課程
-
-[V] 取消報名
-
-[V] 推薦新課程
-
-[ ] 獲取用戶已報名課程列表
-
-[ ] 獲取用戶推薦課程狀態
-
-### 3. 點數管理
-
-[ ] 獲取用戶當前點數
-
-[ ] 扣除點數（報名課程時）
-
-[ ] 返還點數（取消報名或課程未開課時）
-
-### 4. 日曆集成
-
-[ ] 將課程添加到Microsoft Outlook日曆
-
-### 5. 後台管理
-
-[V] 1. 添加/刪除/編輯員工信息
-
-[ ] 2. 批量導入員工數據
-
-[ ] 3. 用戶間轉移點數
-
-[ ] 4. 手動發放點數
-
-[V] 5. 添加/編輯/刪除課程
-
-[V] 6. 上架/下架課程
-
-[V] 7. 查看推薦課程列表
-
-[ ] 8. 審核推薦課程（接受/拒絕）
-
-[ ] 9. 設置課程狀態（報名/投票）
-
-[ ] 10. 開啟/關閉課程連署
-
-[ ] 11. 匯入連署名單到正式課程
-
-### 6. 連署和早鳥功能
-
-[ ] 參與課程連署
-
-[ ] 獲取連署課程列表
-
-[ ] 獲取早鳥優惠課程列表
-
-### 7. 永久開放課程
-
-[ ] 報名永久開放課程
-
-[ ] 獲取永久開放課程信息
-
-### 8. 通知系統
-
-[ ] 發送課程推薦被拒絕通知
+### 郵件模板
+系統使用 HTML 郵件模板發送 OTP，模板定義在 src/templates/emails/OTP_EMAIL.js 中。

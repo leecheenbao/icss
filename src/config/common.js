@@ -1,6 +1,16 @@
 // 引用所需的套件
+const dotenv = require('dotenv');
+const path = require('path');
 const moment = require('moment-timezone');
 const jwt = require('jsonwebtoken');
+
+// 加載共用配置
+dotenv.config({ path: path.resolve(process.cwd())});
+
+// 根據 NODE_ENV 加載相應的環境文件
+const envFile = `.env.${process.env.NODE_ENV || 'local'}`;
+dotenv.config({ path: path.resolve(process.cwd(), envFile) });
+
 // 設置時區
 const timezone = 'Asia/Taipei';                                 // GMT+8 的時區名稱
 

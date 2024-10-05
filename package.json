@@ -4,6 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start:local": "NODE_ENV=local node app.js",
+    "start:stage": "NODE_ENV=stage node app.js",
+    "start:prod": "NODE_ENV=prod node app.js",
     "start": "node app.js",
     "dev": "nodemon app.js",
     "test": "jest"
