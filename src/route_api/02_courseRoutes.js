@@ -418,4 +418,130 @@ router.post("/upload", authenticateToken, isAdmin, async (req, res) => {
   );
 });
 
+/**
+ * @api {put} /api/v1/courses/recommended/:id/approve 審核通過推薦課程
+ * @apiName ApproveRecommendedCourse
+ * @apiGroup Course Recommended
+ * @apiParam {Number} id 推薦課程ID
+ * @apiParam {Date} course_date 課程日期
+ * @apiParam {Date} sign_up_end_date 報名截止日期
+ * @apiParam {Number} max_participants 最大參與人數
+ * @apiParam {Date} sign_up_start_date 報名開始日期
+ * @apiSuccess {Object} message 審核結果消息
+ * @apiError (404) NotFound 推薦課程不存在
+ * @apiError (500) InternalServerError 伺服器錯誤
+ */
+router.put("/recommended/:id/approve", authenticateToken, isAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { course_date, sign_up_end_date, max_participants, sign_up_start_date } = req.body;
+    const missingParams = checkRequiredParams(req.body, ["course_date", "sign_up_end_date", "max_participants", "sign_up_start_date"]);
+    if (missingParams.length > 0) {
+      return res.status(COMMON_RESPONSE_CODE.BAD_REQUEST).json({ message: `缺少必要參數: ${missingParams.join(", ")}` });
+    }
+
+    const recommendedCourse = await models.RecommendedCourse.findByPk(id);
+    if (!recommendedCourse) {
+      return res.status(404).json({ message: "找不到該課程" });
+    }
+
+    // 判斷課程日期是否在報名截止日期之前
+    if (course_date < sign_up_end_date) {
+      return res.status(400).json({ message: "課程日期不能在報名截止日期之前" });
+    }
+    // 判斷報名開始日期是否在報名截止日期之前
+    if (sign_up_start_date > sign_up_end_date) {
+      return res.status(400).json({ message: "報名開始日期不能在報名截止日期之前" });
+    }
+    // 開課人數
+    if (max_participants < 1) {
+      return res.status(400).json({ message: "開課人數不能小於1" });
+    }
+
+    // 更新推薦課程審核狀態
+    const [updatedRows] = await models.RecommendedCourse.update(
+      { status: 1 }, // 1: 審核通過
+      { where: { id: id } }
+    );
+
+    if (updatedRows === 0) {
+      return res.status(400).json({ message: "沒有資料更新" });
+    }
+
+    // 判斷原推薦課程是否已經有課程
+    const course = await models.Course.findOne({ where: { title: recommendedCourse.title } });
+    if (course) {
+      // 更新課程審核狀態
+      const [updatedRows] = await models.Course.update(
+        { status: 1 }, // 1: 審核通過
+        { where: { id: course.id } }
+      );
+      return res.status(400).json({ message: "該課程已經存在, 僅更新審核狀態", data: course });
+    } else {
+      // 將推薦課程轉為正式課程
+      course = await models.Course.create({
+        title: recommendedCourse.title,
+        description: recommendedCourse.description,
+        instructor: recommendedCourse.instructor,
+        image_url: recommendedCourse.image_url,
+        status: 0, // 0:upcoming 1:closed 2:canceled
+        course_date: course_date,
+        sign_up_end_date: sign_up_end_date,
+        max_participants: max_participants,
+        sign_up_start_date: sign_up_start_date,
+        updated_at: now,
+      });
+      res.json({ message: "課程審核通過", data: course });
+    }
+
+  } catch (error) {
+    console.error("課程審核狀態更新失敗:", error);
+    res.status(500).json({ message: "課程審核狀態更新失敗" });
+  }
+});
+
+/**
+ * @api {put} /api/v1/courses/recommended/:id/reject 審核不通過推薦課程
+ * @apiName RejectRecommendedCourse
+ * @apiGroup Course Recommended
+ * @apiParam {Number} id 推薦課程ID
+ * @apiSuccess {Object} message 審核結果消息
+ * @apiError (404) NotFound 推薦課程不存在
+ * @apiError (500) InternalServerError 伺服器錯誤
+ */
+router.put("/recommended/:id/reject", authenticateToken, isAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const recommendedCourse = await models.RecommendedCourse.findByPk(id);
+    if (!recommendedCourse) {
+      return res.status(404).json({ message: "找不到該課程" });
+    }
+
+    const [recommendedCourseUpdatedRows] = await models.RecommendedCourse.update(
+      { status: 2, updated_at: now },   // 2: 審核不通過
+      { where: { id: id } }
+    );
+
+    // 如果推薦課程審核不通過, 則關閉該課程
+    if (recommendedCourseUpdatedRows > 0) {
+      const [courseUpdatedRows] = await models.Course.update(
+        { status: 2, updated_at: now }, // 2: 關閉課程
+        { where: { id: id } }
+      );
+      console.log("關閉課程", courseUpdatedRows);
+    }
+
+    if (recommendedCourseUpdatedRows === 0) {
+      return res.status(400).json({ message: "沒有資料更新" });
+    }
+
+    res.json({ message: "課程審核不通過", data: recommendedCourse });
+
+  } catch (error) {
+    console.error("課程審核狀態更新失敗:", error);
+    res.status(500).json({ message: "課程審核狀態更新失敗" });
+  }
+});
+
+
 module.exports = router;

@@ -52,6 +52,7 @@ app.use(BASE_URL + '/users', userRoutes);
         username: 'admin',
         email: 'admin@admin.com',
         passwordHash: passwordHash,
+        role: '1',
         name: 'admin',
       });
       console.log('會員admin初始帳號建立成功');

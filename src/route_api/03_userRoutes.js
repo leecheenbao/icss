@@ -112,12 +112,7 @@ router.post("/transfer-points", authenticateToken, async (req, res) => {
  * @apiSuccess {Object} response 導入結果
  * @apiError (500) InternalServerError 處理文件時發生錯誤
  */
-router.post(
-  "/bulk-import",
-  authenticateToken,
-  isAdmin,
-  upload.single("file"),
-  async (req, res) => {
+router.post("/bulk-import", authenticateToken, isAdmin, upload.single("file"), async (req, res) => {
     if (!req.file) {
       return res.status(400).json({ error: "沒有上傳文件" });
     }
@@ -154,7 +149,7 @@ router.post(
         // 預設密碼為111111, 加密密碼
         const hashedPassword = await bcrypt.hash("111111", 10);
 
-        const newUser = new User({
+        const newUser = new models.User({
           // 判斷第一欄位是否為 username
           // 無論如何第一個欄位都是 username
           username: row.username,
@@ -164,7 +159,7 @@ router.post(
         });
 
         // 判斷用戶名是否已經註冊過
-        const existingUser = await User.findOne({
+        const existingUser = await models.User.findOne({
           where: { username: row.username },
         });
         if (existingUser) {
@@ -173,7 +168,7 @@ router.post(
           continue;
         }
         // 判斷使用者email是否已經註冊過
-        const existingEmail = await User.findOne({
+        const existingEmail = await models.User.findOne({
           where: { email: row.email },
         });
         if (existingEmail) {
@@ -191,6 +186,7 @@ router.post(
         errorCount,
         errors,
       });
+      
     } catch (error) {
       console.log(error);
       res.status(500).json({ error: `處理文件時發生錯誤: ${error.message}` });
