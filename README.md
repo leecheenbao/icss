@@ -49,6 +49,10 @@ npm run start:prod
 - 獲取推薦課程：GET /api/v1/courses/recommended
 - 推薦課程：POST /api/v1/courses/recommended
 - 上傳課程圖片：POST /api/v1/courses/upload
+- 獲取課程報名列表：GET /api/v1/courses/registrations
+- 獲取課程報名資料：GET /api/v1/courses/registrations/:id
+- 報名課程：POST /api/v1/courses/registrations
+- 取消報名：PUT /api/v1/courses/registrations/:id/cancel
 
 ### 數據模型
 主要的數據模型包括：
@@ -65,3 +69,9 @@ PointsTransaction
 
 ### 郵件模板
 系統使用 HTML 郵件模板發送 OTP，模板定義在 src/templates/emails/OTP_EMAIL.js 中。
+
+### 初始化數據
+腳本方便用於開發時初始化數據
+``` shell
+sh init_data.sh
+```

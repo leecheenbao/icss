@@ -28,17 +28,10 @@ CREATE TABLE courses (
     sign_up_start_date DATE NOT NULL COMMENT '報名開始日期',
     sign_up_end_date DATE NOT NULL COMMENT '報名截止日期',
     status INT DEFAULT 0 COMMENT '課程狀態 0:upcoming 1:closed 2:canceled',
-    recommended_course_id INT COMMENT '推薦課程ID，關聯至recommended_courses表',
+    recommended_course_id INT COMMENT '推薦課程ID',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '創建時間',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最後更新時間'
 ) COMMENT = '課程資料表';
-
-    ALTER TABLE courses
-    ADD COLUMN recommended_course_id INT COMMENT '推薦課程ID，關聯至recommended_courses表';
-
-    ALTER TABLE courses
-    ADD FOREIGN KEY (recommended_course_id) REFERENCES recommended_courses(id);
-
 
 CREATE TABLE course_registrations (
     id INT PRIMARY KEY AUTO_INCREMENT COMMENT '課程報名的唯一識別碼',
