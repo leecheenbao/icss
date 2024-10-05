@@ -140,4 +140,9 @@ dist
 # SvelteKit build / generate output
 .svelte-kit
 
+# database
+db_data
+db_data/data-mariadb
+
 # End of https://www.toptal.com/developers/gitignore/api/node
+

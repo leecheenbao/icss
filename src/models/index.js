@@ -12,8 +12,8 @@ CourseRegistration.belongsTo(User);
 Course.hasMany(CourseRegistration);
 CourseRegistration.belongsTo(Course);
 
-User.hasMany(RecommendedCourse);
-RecommendedCourse.belongsTo(User);
+User.hasMany(RecommendedCourse, { foreignKey: 'user_id' });
+RecommendedCourse.belongsTo(User, { foreignKey: 'user_id' });
 
 User.hasMany(Notification);
 Notification.belongsTo(User);

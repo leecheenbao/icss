@@ -258,8 +258,8 @@ router.put("/:id/close", authenticateToken, isAdmin, async (req, res) => {
  */
 router.get("/recommended", authenticateToken, async (req, res) => {
   try {
-    const recommendedCourses = await models.Course.findAll({
-      where: { status: 1 },
+    const recommendedCourses = await models.RecommendedCourse.findAll({
+      // where: { status: 1 },
       limit: 10,
       order: [["created_At", "DESC"]],
     });
@@ -273,6 +273,30 @@ router.get("/recommended", authenticateToken, async (req, res) => {
     res.status(500).json({ message: COMMON_MESSAGE.SERVER_ERROR });
   }
 });
+
+/**
+ * @api {get} /api/v1/courses/recommended/:id 獲取單個推薦課程詳情
+ * @apiName GetRecommendedCourseInfo
+ * @apiGroup Course Recommended
+ * @apiParam {Number} id 推薦課程ID
+ * @apiSuccess {Object} course 推薦課程詳情
+ * @apiError (404) NotFound 推薦課程不存在
+ * @apiError (500) InternalServerError 伺服器錯誤
+ */
+router.get("/recommended/:id", authenticateToken, async (req, res) => {
+  try {
+    const course = await models.RecommendedCourse.findByPk(req.params.id);
+    if (!course) {
+      return res.status(COMMON_RESPONSE_CODE.NOT_FOUND).json({ message: "推薦課程不存在" });
+    }
+    res.json(course);
+  } catch (error) {
+    console.error("獲取推薦課程詳情時發生錯誤:", error);
+    res.status(500).json({ message: COMMON_MESSAGE.SERVER_ERROR });
+  }
+});
+
+
 
 /**
  * @api {post} /api/v1/courses/recommended 推薦課程
@@ -310,6 +334,62 @@ router.post("/recommended", authenticateToken, async (req, res) => {
   }
 
 });
+
+/**
+ * @api {put} /api/v1/courses/recommended/:id 編輯推薦課程
+ * @apiName EditRecommendedCourse
+ * @apiGroup Course Recommended
+ * @apiParam {Number} id 推薦課程ID
+ * @apiParam {String} [title] 課程標題
+ * @apiParam {String} [description] 課程描述
+ * @apiParam {String} [instructor] 講者姓名
+ * @apiParam {String} [image_url] 推薦課程圖片URL
+ * @apiSuccess {Object} course 更新後的推薦課程
+ * @apiError (404) NotFound 推薦課程不存在
+ * @apiError (500) InternalServerError 伺服器錯誤
+ */
+router.put("/recommended/:id", authenticateToken, async (req, res) => {
+  try {
+    const { title, description, instructor, image_url } = req.body;
+    const missingParams = checkRequiredParams(req.body, ["title", "description", "instructor"]);
+    if (missingParams.length > 0) {
+      return res.status(COMMON_RESPONSE_CODE.BAD_REQUEST).json({ message: `缺少必要參數: ${missingParams.join(", ")}` });
+    }
+
+    // 檢查有無該課程
+    console.log(req.params.id);
+    const course = await models.RecommendedCourse.findOne({ where: { id: req.params.id } });
+    if (!course) {
+      return res.status(COMMON_RESPONSE_CODE.NOT_FOUND).json({ message: "推薦課程不存在" });
+    }
+
+    // 更新推薦課程
+    console.log(title, description, instructor, image_url);
+    console.log("現在時間", now);
+
+    const [updatedRows] = await models.RecommendedCourse.update(
+      {
+        title: title,
+        description: description,
+        instructor: instructor,
+        image_url: image_url,
+        updated_at: now,
+      },
+      { where: { id: req.params.id } }
+    );
+
+    if (updatedRows === 0) {
+      return res.status(COMMON_RESPONSE_CODE.NOT_FOUND).json({ message: "沒有更新任何資料" });
+    } else {
+      const updatedCourse = await models.RecommendedCourse.findByPk(req.params.id);
+      res.json({ message: "推薦課程更新成功", data: updatedCourse });
+    }
+  } catch (error) {
+    console.error("編輯推薦課程時發生錯誤:", error);
+    res.status(500).json({ message: "推薦課程更新失敗" });
+  }
+});
+
 
 /**
  * @api {post} /api/v1/courses/upload 上傳課程圖片

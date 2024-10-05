@@ -1,7 +1,7 @@
 version: '3.1'
 services:
   mysql_icss:
-    image: mysql:latest
+    image: mysql:8.0
     container_name: mysql_icss
     privileged: true
     mem_limit: 512m
@@ -11,15 +11,11 @@ services:
       MYSQL_ROOT_PASSWORD: '111111'
       MYSQL_DATABASE: 'icss_db'
       MYSQL_ROOT_HOST: '%'
-      TZ: 'Asia/Taipei' # 設置時區為 Asia/Taipei
+      TZ: UTC # 設置時區為 Asia/Taipei
+      LANG: C.UTF-8
     volumes:
-      - mysql-volume:/var/lib/mysql
-    networks:
-      - back-tier
-
+      - "./db_data/mysql_data:/var/lib/mysql"
+      # - "./db_data/my.cnf:/etc/mysql/my.cnf"
+      - "./SQL_SCHEMA/init.sql:/docker-entrypoint-initdb.d/mysql_init.sql"
 volumes:
   mysql-volume:
-
-networks:
-  back-tier:
-    driver: bridge

@@ -12,10 +12,11 @@ const envFile = `.env.${process.env.NODE_ENV || 'local'}`;
 dotenv.config({ path: path.resolve(process.cwd(), envFile) });
 
 // 設置時區
-const timezone = 'Asia/Taipei';                                 // GMT+8 的時區名稱
+const timezone = process.env.TZ || Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-// 目前時間
-const now = moment().tz(timezone).format();
+// 目前時間 (yyyy-mm-dd hh:mm:ss)
+const now = moment().tz(timezone).format('YYYY-MM-DD HH:mm:ss');
+
 // JWT 配置
 const JWT_SECRET = process.env.JWT_SECRET || 'ICSS_SECRET'; // 確保將其設置為一個安全的密鑰
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';      // Token 有效期

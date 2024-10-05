@@ -1,3 +1,6 @@
+CREATE DATABASE IF NOT EXISTS icss_db;
+USE icss_db;
+
 CREATE TABLE users (
   id int NOT NULL AUTO_INCREMENT COMMENT '員工ID',
   username varchar(255) NOT NULL COMMENT '員工姓名',
@@ -37,8 +40,8 @@ CREATE TABLE course_registrations (
     points_deducted INT COMMENT '為報名扣除的點數',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '報名建立時間',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '報名資料最近更新時間',
-    FOREIGN KEY (user_id) REFERENCES users(id),
-) COMMENT='員工課程報名及點數扣除狀況';
+    FOREIGN KEY (user_id) REFERENCES users(id)
+) COMMENT = '員工課程報名及點數扣除狀況';
 
 CREATE TABLE recommended_courses (
     id INT PRIMARY KEY AUTO_INCREMENT COMMENT '推薦課程的唯一識別碼',
