@@ -8,7 +8,11 @@ const PointsTransaction = sequelize.define('PointsTransaction', {
     autoIncrement: true,
     comment: '點數交易的唯一識別碼'
   },
-  user_id: {
+  from_user_id: {
+    type: DataTypes.INTEGER,
+    comment: '點數交易涉及的員工ID，關聯至users表'
+  },
+  to_user_id: {
     type: DataTypes.INTEGER,
     comment: '點數交易涉及的員工ID，關聯至users表'
   },

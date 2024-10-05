@@ -76,10 +76,12 @@ CREATE TABLE notifications (
 
 CREATE TABLE points_transactions (
     id INT PRIMARY KEY AUTO_INCREMENT COMMENT '點數交易的唯一識別碼',
-    user_id INT COMMENT '點數交易涉及的員工ID，關聯至users表',
+    from_user_id INT COMMENT '點數交易涉及的員工ID，關聯至users表',
+    to_user_id INT COMMENT '點數交易涉及的員工ID，關聯至users表',
     points INT COMMENT '此次交易增加或減少的點數數量',
     transaction_type INT NOT NULL COMMENT '點數交易類型，1:add為增加，2:deduct為扣除，3:refund為退還',
     description TEXT COMMENT '點數交易描述，描述交易原因或詳情',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '點數交易建立時間',
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    FOREIGN KEY (from_user_id) REFERENCES users(id),
+    FOREIGN KEY (to_user_id) REFERENCES users(id)
 ) COMMENT='員工點數的交易記錄，包括報名課程扣點、退點等';

@@ -91,13 +91,34 @@ router.post("/transfer-points", authenticateToken, async (req, res) => {
       return res.json({ message: "轉移點數超過可用點數" });
     }
 
+    // 判斷是否轉移給自己
+    if (userId === toUserId) {
+      return res.json({ message: "點數轉移失敗, 不能轉移給自己" });
+    }
+
     fromUser.points -= points;
     toUser.points += points;
 
     await fromUser.update({ points: fromUser.points });
     await toUser.update({ points: toUser.points });
 
-    res.json({ message: "點數轉移成功" });
+    const description = `${fromUser.username} 轉移給 ${toUser.username} ${points} 點`;
+
+    // 新增點數轉移紀錄
+    try {
+      await models.PointsTransaction.create({
+        from_user_id: userId,
+        to_user_id: toUserId,
+        points: points,
+        transaction_type: 1, // 1: 轉移
+        description: description,
+      });
+    } catch (error) {
+      console.error("新增點數轉移紀錄時發生錯誤:", error);
+      res.status(500).json({ error: `新增點數轉移紀錄時發生錯誤: ${error.message}` });
+    }
+
+    res.json({ message: "點數轉移成功", description: description });
   } catch (error) {
     console.error("點數轉移時發生錯誤:", error);
     res.status(500).json({ error: `點數轉移時發生錯誤: ${error.message}` });
@@ -186,7 +207,7 @@ router.post("/bulk-import", authenticateToken, isAdmin, upload.single("file"), a
         errorCount,
         errors,
       });
-      
+
     } catch (error) {
       console.log(error);
       res.status(500).json({ error: `處理文件時發生錯誤: ${error.message}` });
