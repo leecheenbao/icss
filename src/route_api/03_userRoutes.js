@@ -219,29 +219,47 @@ router.post("/bulk-import", authenticateToken, isAdmin, upload.single("file"), a
 );
 
 /**
- * @api {get} /api/v1/users/download-template 下載使用者模板
+ * @api {get} /api/v1/users/download-template 下載後台批量操作模板
  * @apiName DownloadUserTemplate
  * @apiGroup Users
+ * @apiParam {String} type 模板類型，user 或 points
  * @apiSuccess {File} file 下載的 CSV 文件
  * @apiError (500) InternalServerError 下載模板時出錯
  */
-router.get("/download-template", async (req, res) => {
-  const templatePath = path.join(__dirname, "../temp", "user_template.csv");
+router.get("/download-template/:type", async (req, res) => {
+  const type = req.params.type;
+  const templateName = `${type}_template.csv`;
+  const templatePath = path.join(__dirname, "../temp", templateName);
+
+  let header, data;
+
+  if (type === "user") {
+    header = [
+      { id: "username", title: "username" },
+      { id: "email", title: "email" },
+    ];
+    data = [{ username: "example_user", email: "user@example.com"}];
+  } else if (type === "points") {
+    header = [
+      { id: "username", title: "username" },
+      { id: "points", title: "points" },
+    ];
+    data = [{ username: "example_user2222", points: "200"}];
+  } else {
+    return res.status(400).json({ message: "模板類型錯誤" });
+  }
 
   const csvWriter = createCsvWriter({
     path: templatePath,
-    header: [
-      { id: "username", title: "username" },
-      { id: "email", title: "email" },
-    ],
+    header: header
   });
 
-  const data = [{ username: "example_user", email: "user@example.com" }];
-
   try {
+    console.log(data);
+    console.log(templatePath, templateName);
     await csvWriter.writeRecords(data);
 
-    res.download(templatePath, "user_template.csv", (err) => {
+    res.download(templatePath, templateName, (err) => {
       if (err) {
         console.error("下載模板時出錯:", err);
         res.status(500).send("下載模板時出錯");
