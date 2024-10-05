@@ -150,7 +150,7 @@ router.put("/:id", authenticateToken, isAdmin, async (req, res) => {
         max_participants: req.body.max_participants,
         sign_up_start_date: req.body.sign_up_start_date,
         sign_up_end_date: req.body.sign_up_end_date,
-        updated_at: now,
+        updated_at: new Date(),
       },
       {
         where: { id: req.params.id },
@@ -364,16 +364,13 @@ router.put("/recommended/:id", authenticateToken, async (req, res) => {
     }
 
     // 更新推薦課程
-    console.log(title, description, instructor, image_url);
-    console.log("現在時間", now);
-
     const [updatedRows] = await models.RecommendedCourse.update(
       {
         title: title,
         description: description,
         instructor: instructor,
         image_url: image_url,
-        updated_at: now,
+        updated_at: new Date(),
       },
       { where: { id: req.params.id } }
     );
@@ -423,21 +420,26 @@ router.post("/upload", authenticateToken, isAdmin, async (req, res) => {
  * @apiName ApproveRecommendedCourse
  * @apiGroup Course Recommended
  * @apiParam {Number} id 推薦課程ID
+ * @apiParam {String} title 課程標題
+ * @apiParam {String} [description] 課程描述
+ * @apiParam {String} [instructor] 講者姓名
+ * @apiParam {String} [image_url] 課程圖片URL
  * @apiParam {Date} course_date 課程日期
  * @apiParam {Date} sign_up_end_date 報名截止日期
  * @apiParam {Number} max_participants 最大參與人數
  * @apiParam {Date} sign_up_start_date 報名開始日期
  * @apiSuccess {Object} message 審核結果消息
- * @apiError (404) NotFound 推薦課程不存在
  * @apiError (500) InternalServerError 伺服器錯誤
  */
 router.put("/recommended/:id/approve", authenticateToken, isAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    const { course_date, sign_up_end_date, max_participants, sign_up_start_date } = req.body;
+    const { course_date, sign_up_end_date, max_participants, sign_up_start_date, // 必填欄位
+      title, description, instructor, image_url // 選填欄位
+    } = req.body;
     const missingParams = checkRequiredParams(req.body, ["course_date", "sign_up_end_date", "max_participants", "sign_up_start_date"]);
     if (missingParams.length > 0) {
-      return res.status(COMMON_RESPONSE_CODE.BAD_REQUEST).json({ message: `缺少必要參數: ${missingParams.join(", ")}` });
+      return res.json({ message: `缺少必要參數: ${missingParams.join(", ")}` });
     }
 
     const recommendedCourse = await models.RecommendedCourse.findByPk(id);
@@ -459,37 +461,44 @@ router.put("/recommended/:id/approve", authenticateToken, isAdmin, async (req, r
     }
 
     // 更新推薦課程審核狀態
-    const [updatedRows] = await models.RecommendedCourse.update(
+    const [recommendedCourseUpdatedRows] = await models.RecommendedCourse.update(
       { status: 1 }, // 1: 審核通過
       { where: { id: id } }
     );
 
-    if (updatedRows === 0) {
+    if (recommendedCourseUpdatedRows === 0) {
       return res.status(400).json({ message: "沒有資料更新" });
     }
 
     // 判斷原推薦課程是否已經有課程
-    const course = await models.Course.findOne({ where: { title: recommendedCourse.title } });
+    const course = await models.Course.findOne({ where: { recommended_course_id: id } });
     if (course) {
       // 更新課程審核狀態
-      const [updatedRows] = await models.Course.update(
-        { status: 1 }, // 1: 審核通過
+      const [courseUpdatedRows] = await models.Course.update(
+        { status: 1 ,updated_at: new Date()}, // 1: 審核通過
         { where: { id: course.id } }
       );
       return res.status(400).json({ message: "該課程已經存在, 僅更新審核狀態", data: course });
     } else {
+      // 如果選填欄位有值, 則更新該欄位, 否則使用原推薦課程的值
+      let courseTitle = title ?? recommendedCourse.title;
+      let courseDescription = description ?? recommendedCourse.description;
+      let courseInstructor = instructor ?? recommendedCourse.instructor;
+      let courseImageUrl = image_url ?? recommendedCourse.image_url;
+      
       // 將推薦課程轉為正式課程
-      course = await models.Course.create({
-        title: recommendedCourse.title,
-        description: recommendedCourse.description,
-        instructor: recommendedCourse.instructor,
-        image_url: recommendedCourse.image_url,
+      const course = await models.Course.create({
+        title: courseTitle,
+        description: courseDescription,
+        instructor: courseInstructor,
+        image_url: courseImageUrl,
+        recommended_course_id: id,
         status: 0, // 0:upcoming 1:closed 2:canceled
         course_date: course_date,
         sign_up_end_date: sign_up_end_date,
         max_participants: max_participants,
         sign_up_start_date: sign_up_start_date,
-        updated_at: now,
+        updated_at: new Date(),
       });
       res.json({ message: "課程審核通過", data: course });
     }
@@ -518,17 +527,16 @@ router.put("/recommended/:id/reject", authenticateToken, isAdmin, async (req, re
     }
 
     const [recommendedCourseUpdatedRows] = await models.RecommendedCourse.update(
-      { status: 2, updated_at: now },   // 2: 審核不通過
+      { status: 2, updated_at: new Date() },   // 2: 審核不通過
       { where: { id: id } }
     );
 
     // 如果推薦課程審核不通過, 則關閉該課程
     if (recommendedCourseUpdatedRows > 0) {
       const [courseUpdatedRows] = await models.Course.update(
-        { status: 2, updated_at: now }, // 2: 關閉課程
+        { status: 2, updated_at: new Date() }, // 2: 關閉課程
         { where: { id: id } }
       );
-      console.log("關閉課程", courseUpdatedRows);
     }
 
     if (recommendedCourseUpdatedRows === 0) {

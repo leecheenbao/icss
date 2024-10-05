@@ -46,6 +46,10 @@ const Course = sequelize.define('Course', {
     defaultValue: 0,
     comment: '課程狀態 0:draft 1:publish 2:closed'
   },
+  recommended_course_id: {
+    type: DataTypes.INTEGER,
+    comment: '推薦課程ID，關聯至recommended_courses表'
+  },
   created_at: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,

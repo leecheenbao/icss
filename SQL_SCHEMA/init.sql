@@ -30,8 +30,7 @@ CREATE TABLE courses (
     status INT DEFAULT 0 COMMENT '課程狀態 0:upcoming 1:closed 2:canceled',
     recommended_course_id INT COMMENT '推薦課程ID，關聯至recommended_courses表',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '創建時間',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最後更新時間',
-    FOREIGN KEY (recommended_course_id) REFERENCES recommended_courses(id)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最後更新時間'
 ) COMMENT = '課程資料表';
 
     ALTER TABLE courses
