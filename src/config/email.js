@@ -1,4 +1,6 @@
 const nodemailer = require('nodemailer');
+const dotenv = require('dotenv');
+const path = require('path');
 
 // 加載共用配置
 dotenv.config({ path: path.resolve(process.cwd())});
