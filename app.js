@@ -7,7 +7,7 @@ const sequelize = require('./src/config/database');
 
 const authRoutes = require('./src/route_api/01_authRoutes');
 const courseRoutes = require('./src/route_api/02_courseRoutes');
-
+const userRoutes = require('./src/route_api/03_userRoutes');
 const app = express();
 const PORT = process.env.MAIN_NODE_PORT;
 const BASE_URL = process.env.BASE_URL;
@@ -26,7 +26,7 @@ app.set('views', path.join(__dirname, 'views'));
 // 路由
 app.use(BASE_URL + '/auth', authRoutes);
 app.use(BASE_URL + '/courses', courseRoutes);
-
+app.use(BASE_URL + '/users', userRoutes);
 // 數據庫同步和服務器啟動
 (async () => {
   try {
