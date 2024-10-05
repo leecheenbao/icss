@@ -12,15 +12,17 @@ const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
-  if (token == null) return authResponse(res, COMMON_RESPONSE_CODE.TOKEN_INVALID, COMMON_RESPONSE_MESSAGE.TOKEN_REQUIRED);
+  if (token == null) return authResponse(res, COMMON_RESPONSE_CODE.TOKEN_INVALID, "缺少 Token");
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
 
-    console.log(">>>>> role:", user.username, user.role);
+    if (!user) {
+      return authResponse(res, COMMON_RESPONSE_CODE.SUCCESS, "尚未登入");
+    }
     if (user.role === USER_ROLE.BANNED) {
-      return authResponse(res, COMMON_RESPONSE_CODE.SUCCESS, COMMON_RESPONSE_MESSAGE.USER_BANNED);
+      return authResponse(res, COMMON_RESPONSE_CODE.SUCCESS, "用戶已被停用");
     }
     if (err) {
-      return authResponse(res, COMMON_RESPONSE_CODE.INTERNAL_SERVER_ERROR, COMMON_RESPONSE_MESSAGE.TOKEN_INVALID);
+      return authResponse(res, COMMON_RESPONSE_CODE.INTERNAL_SERVER_ERROR, "Token 無效");
     }
     req.user = user;
     next();
@@ -32,14 +34,14 @@ const isAdmin = async (req, res, next) => {
   try {
     const user = await User.findByPk(req.user.id);
     if (user.role === USER_ROLE.USER) {
-      return authResponse(res, COMMON_RESPONSE_CODE.SUCCESS, COMMON_RESPONSE_MESSAGE.FORBIDDEN);
+      return authResponse(res, COMMON_RESPONSE_CODE.SUCCESS, "權限不足");
     } else if (user.role === USER_ROLE.BANNED) {
-      return authResponse(res, COMMON_RESPONSE_CODE.SUCCESS, COMMON_RESPONSE_MESSAGE.USER_BANNED);
+      return authResponse(res, COMMON_RESPONSE_CODE.SUCCESS, "用戶已被停用");
     }
     next();
   } catch (error) {
     console.error("判斷權限時發生錯誤:", error);
-    return authResponse(res, COMMON_RESPONSE_CODE.INTERNAL_SERVER_ERROR, COMMON_RESPONSE_MESSAGE.INTERNAL_SERVER_ERROR);
+    return authResponse(res, COMMON_RESPONSE_CODE.INTERNAL_SERVER_ERROR, "伺服器錯誤");
   }
 };
 

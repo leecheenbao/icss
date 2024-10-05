@@ -5,12 +5,104 @@ const csv = require("csv-parser");
 const xlsx = require("xlsx");
 const fs = require("fs");
 const path = require("path");
-const User = require("../models/User"); // 假設您有一個 User 模型
+const models = require("../models");
 const { authenticateToken, isAdmin } = require("../config/authMiddleware");
 const upload = multer({ dest: "uploads/" });
 const createCsvWriter = require("csv-writer").createObjectCsvWriter;
+const { checkRequiredParams } = require("../utils/validationUtils");
 const { COMMON_RESPONSE_CODE } = require("../enum/commonEnum");
 const bcrypt = require("bcrypt");
+
+/**
+ * @api {post} /api/v1/users/manual-points 手動發放點數
+ * @apiName ManualPoints
+ * @apiGroup Users
+ * @apiParam {Number[]} userIds 用戶ID列表
+ * @apiParam {Number} points 發放的點數
+ * @apiSuccess {Object} response 發放結果
+ * @apiError (500) InternalServerError 發放點數時發生錯誤
+ */
+router.post("/manual-points", authenticateToken, isAdmin, async (req, res) => {
+  const { userIds, points } = req.body;
+
+  const missingParams = checkRequiredParams(req.body, ["userIds", "points"]);
+  if (missingParams.length > 0) {
+    return res
+      .status(400)
+      .json({ error: `缺少必要參數: ${missingParams.join(", ")}` });
+  }
+
+  if (points < 0) {
+    return res.json({ message: "發放點數不能小於 0" });
+  }
+
+  try {
+    const user = await models.User.findOne({ where: { id: userIds } });
+    if (!user) {
+      return res.json({ message: "用戶不存在" });
+    }
+
+    // 發放點數
+    for (const userId of userIds) {
+      const user = await models.User.findOne({ where: { id: userId } });
+      user.points += points;
+      await user.save();
+    }
+
+    res.json({ message: "點數發放成功" });
+  } catch (error) {
+    console.error("發放點數時發生錯誤:", error);
+    res.status(500).json({ error: `發放點數時發生錯誤: ${error.message}` });
+  }
+});
+
+/**
+ * @api {post} /api/v1/users/transfer-points 員工點數轉移
+ * @apiName TransferPoints
+ * @apiGroup Users
+ * @apiParam {Number} toUserId 轉移點數的目標用戶ID
+ * @apiParam {Number} points 轉移的點數
+ * @apiSuccess {Object} response 轉移結果
+ * @apiError (500) InternalServerError 轉移點數時發生錯誤
+ */
+router.post("/transfer-points", authenticateToken, async (req, res) => {
+  const { toUserId, points } = req.body;
+
+  const missingParams = checkRequiredParams(req.body, ["toUserId", "points"]);
+  if (missingParams.length > 0) {
+    return res
+      .status(400)
+      .json({ error: `缺少必要參數: ${missingParams.join(", ")}` });
+  }
+
+  try {
+    // 從JWT中獲取用戶ID
+    const userId = req.user.id;
+    const fromUser = await models.User.findOne({ where: { id: userId } });
+    const toUser = await models.User.findOne({ where: { id: toUserId } });
+
+    // 判斷用戶對象是否存在
+    if (!toUser) {
+      return res.json({ message: "對象用戶不存在" });
+    }
+
+    // 判斷轉移點數是否超過可用點數
+    if (fromUser.points < points) {
+      return res.json({ message: "轉移點數超過可用點數" });
+    }
+
+    fromUser.points -= points;
+    toUser.points += points;
+
+    await fromUser.update({ points: fromUser.points });
+    await toUser.update({ points: toUser.points });
+
+    res.json({ message: "點數轉移成功" });
+  } catch (error) {
+    console.error("點數轉移時發生錯誤:", error);
+    res.status(500).json({ error: `點數轉移時發生錯誤: ${error.message}` });
+  }
+});
 
 /**
  * @api {post} /api/v1/users/bulk-import 批量導入使用者
@@ -20,9 +112,13 @@ const bcrypt = require("bcrypt");
  * @apiSuccess {Object} response 導入結果
  * @apiError (500) InternalServerError 處理文件時發生錯誤
  */
-router.post("/bulk-import", authenticateToken, isAdmin, upload.single("file"), async (req, res) => {
-    
-  if (!req.file) {
+router.post(
+  "/bulk-import",
+  authenticateToken,
+  isAdmin,
+  upload.single("file"),
+  async (req, res) => {
+    if (!req.file) {
       return res.status(400).json({ error: "沒有上傳文件" });
     }
 
@@ -55,9 +151,8 @@ router.post("/bulk-import", authenticateToken, isAdmin, upload.single("file"), a
       }
 
       for (const row of results) {
-
         // 預設密碼為111111, 加密密碼
-        const hashedPassword = await bcrypt.hash('111111', 10);
+        const hashedPassword = await bcrypt.hash("111111", 10);
 
         const newUser = new User({
           // 判斷第一欄位是否為 username
@@ -69,14 +164,18 @@ router.post("/bulk-import", authenticateToken, isAdmin, upload.single("file"), a
         });
 
         // 判斷用戶名是否已經註冊過
-        const existingUser = await User.findOne({ where: { username: row.username } });
+        const existingUser = await User.findOne({
+          where: { username: row.username },
+        });
         if (existingUser) {
           errors.push(`用戶 ${row.username} 已經存在`);
           errorCount++;
           continue;
         }
         // 判斷使用者email是否已經註冊過
-        const existingEmail = await User.findOne({ where: { email: row.email } });
+        const existingEmail = await User.findOne({
+          where: { email: row.email },
+        });
         if (existingEmail) {
           errors.push(`用戶 ${row.email} 已經存在`);
           errorCount++;
@@ -92,7 +191,6 @@ router.post("/bulk-import", authenticateToken, isAdmin, upload.single("file"), a
         errorCount,
         errors,
       });
-
     } catch (error) {
       console.log(error);
       res.status(500).json({ error: `處理文件時發生錯誤: ${error.message}` });
