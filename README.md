@@ -32,27 +32,43 @@ npm run start:prod
 ```
 
 ### API 路由
-#### 用戶認證和管理
-- 註冊管理員：POST /api/v1/admin/register
-- 用戶註冊：POST /api/v1/register
-- 發送 OTP：POST /api/v1/auth/send-otp
-- 驗證 OTP：POST /api/v1/auth/verify-otp
-- 獲取用戶列表：GET /api/v1/admin/users
-- 獲取用戶資料：GET /api/v1/admin/users/:id
-- 更新用戶資料：PUT /api/v1/admin/users/:id
-#### 課程管理
-- 獲取所有課程：GET /api/v1/courses
-- 獲取單個課程：GET /api/v1/courses/info/:id
-- 創建課程：POST /api/v1/courses
+#### 1.用戶認證和管理
+- 註冊管理員：POST /api/v1/auth/admin/register
+- 用戶註冊：POST /api/v1/auth/register
+- 登入：POST /api/v1/auth/login
+- 發送OTP：POST /api/v1/auth/send-otp
+- 驗證OTP：POST /api/v1/auth/verify-otp
+  
+#### 2.員工管理
+- 獲取員工列表：GET /api/v1/users
+- 獲取用戶資料：GET /api/v1/users/info
+- 更新員工資料：PUT /api/v1/users/:id
+- 批量更新員工資料：PUT /api/v1/users/bulk-import
+  
+#### 3.課程管理
+- 獲取課程列表：GET /api/v1/courses
+- 獲取課程詳情：GET /api/v1/courses/:id
+- 新增課程：POST /api/v1/courses
 - 更新課程：PUT /api/v1/courses/:id
-- 下架課程：PUT /api/v1/courses/:id/close
-- 獲取推薦課程：GET /api/v1/courses/recommended
-- 推薦課程：POST /api/v1/courses/recommended
+- 刪除課程：DELETE /api/v1/courses/:id
+- 手動上架課程：PUT /api/v1/courses/:id/publish
+- 手動下架課程：PUT /api/v1/courses/:id/unpublish
+- 獲取推薦課程列表：GET /api/v1/courses/recommended
+- 獲取推薦課程詳情：GET /api/v1/courses/recommended/:id
+- 新增推薦課程：POST /api/v1/courses/recommended
+- 更新推薦課程：PUT /api/v1/courses/recommended/:id
+- 審核推薦課程：PUT /api/v1/courses/recommended/:id/approve
+- 審核不通過推薦課程：PUT /api/v1/courses/recommended/:id/reject
 - 上傳課程圖片：POST /api/v1/courses/upload
-- 獲取課程報名列表：GET /api/v1/courses/registrations
-- 獲取課程報名資料：GET /api/v1/courses/registrations/:id
-- 報名課程：POST /api/v1/courses/registrations
-- 取消報名：PUT /api/v1/courses/registrations/:id/cancel
+  
+#### 4.點數管理
+- 員工點數轉移：POST /api/v1/points/transfer
+- 手動發放點數：POST /api/v1/points/manual-points
+
+#### 5.其他
+- 下載後台批量操作模板：GET /api/v1/download-template/:type
+
+
 
 ### 數據模型
 主要的數據模型包括：
@@ -76,7 +92,11 @@ PointsTransaction
 sh init_data.sh
 ```
 ### 更新文件
-透過apidoc生成api文件
+透過apidoc生成api文件，要使用的話需要先安裝apidoc
+``` shell
+npm install -g apidoc
+```
+生成api文件
 ``` shell
 apidoc -i src -o icss-docs
 ```

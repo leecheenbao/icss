@@ -18,7 +18,7 @@ const {
 /**
  * @api {get} /api/v1/courses 01.獲取所有課程列表
  * @apiName GetAllCourses
- * @apiGroup 02.課程管理
+ * @apiGroup 03.課程管理
  * @apiSuccess {Object[]} courses 課程列表
  * @apiError (500) InternalServerError 伺服器錯誤
  */
@@ -38,7 +38,7 @@ router.get("/", authenticateToken, async (req, res) => {
 /**
  * @api {get} /api/v1/courses/info:id 02.獲取單個課程詳情
  * @apiName GetCourseInfo
- * @apiGroup 02.課程管理
+ * @apiGroup 03.課程管理
  * @apiParam {Number} id 課程ID
  * @apiSuccess {Object} course 課程詳情
  * @apiError (404) NotFound 課程不存在
@@ -58,9 +58,9 @@ router.get("/info/:id", authenticateToken, async (req, res) => {
 });
 
 /**
- * @api {post} /api/v1/courses 05-01.新增課程
+ * @api {post} /api/v1/courses 03.新增課程
  * @apiName CreateCourse
- * @apiGroup 05.後台管理
+ * @apiGroup 03.課程管理
  * @apiParam {String} title 課程標題
  * @apiParam {String} description 課程描述
  * @apiParam {String} instructor 講者姓名
@@ -109,9 +109,9 @@ router.post("/", authenticateToken, isAdmin, async (req, res) => {
 });
 
 /**
- * @api {put} /api/v1/courses/:id 05-02.更新課程
+ * @api {put} /api/v1/courses/:id 04.更新課程
  * @apiName UpdateCourse
- * @apiGroup 05.後台管理
+ * @apiGroup 03.課程管理
  * @apiParam {Number} id 課程ID
  * @apiParam {String} [title] 課程標題
  * @apiParam {String} [description] 課程描述
@@ -166,9 +166,9 @@ router.put("/:id", authenticateToken, isAdmin, async (req, res) => {
 });
 
 /**
- * @api {delete} /api/v1/courses/:id 05-03.刪除課程
+ * @api {delete} /api/v1/courses/:id 05.刪除課程
  * @apiName DeleteCourse
- * @apiGroup 05.後台管理
+ * @apiGroup 03.課程管理
  * @apiParam {Number} id 課程ID
  * @apiSuccess {Object} message 刪除成功消息
  * @apiError (404) NotFound 課程不存在
@@ -190,9 +190,9 @@ router.delete("/:id", authenticateToken, isAdmin, async (req, res) => {
 });
 
 /**
- * @api {put} /api/v1/courses/:id/publish 上架課程
+ * @api {put} /api/v1/courses/:id/publish 06.手動上架課程
  * @apiName PublishCourse
- * @apiGroup Course
+ * @apiGroup 03.課程管理
  * @apiParam {Number} id 課程ID
  * @apiSuccess {Object} course 上架後的課程
  * @apiError (404) NotFound 課程不存在
@@ -223,15 +223,15 @@ router.put("/:id/publish", authenticateToken, isAdmin, async (req, res) => {
 });
 
 /**
- * @api {put} /api/v1/courses/:id/close 下架課程
+ * @api {put} /api/v1/courses/:id/unpublish 07.手動下架課程
  * @apiName CloseCourse
- * @apiGroup Course
+ * @apiGroup 03.課程管理
  * @apiParam {Number} id 課程ID
  * @apiSuccess {Object} course 上架後的課程
  * @apiError (404) NotFound 課程不存在
  * @apiError (500) InternalServerError 伺服器錯誤
  */
-router.put("/:id/close", authenticateToken, isAdmin, async (req, res) => {
+router.put("/:id/unpublish", authenticateToken, isAdmin, async (req, res) => {
   try {
     const [updatedRows] = await models.Course.update(
       { status: 2 },
@@ -250,9 +250,9 @@ router.put("/:id/close", authenticateToken, isAdmin, async (req, res) => {
 });
 
 /**
- * @api {get} /api/v1/courses/recommended 獲取推薦課程
+ * @api {get} /api/v1/courses/recommended 08.獲取推薦課程列表
  * @apiName GetRecommendedCourses
- * @apiGroup Course Recommended
+ * @apiGroup 03.課程管理
  * @apiSuccess {Object[]} courses 推薦課程列表
  * @apiError (500) InternalServerError 伺服器錯誤
  */
@@ -275,9 +275,9 @@ router.get("/recommended", authenticateToken, async (req, res) => {
 });
 
 /**
- * @api {get} /api/v1/courses/recommended/:id 獲取單個推薦課程詳情
+ * @api {get} /api/v1/courses/recommended/:id 09.獲取推薦課程詳情
  * @apiName GetRecommendedCourseInfo
- * @apiGroup Course Recommended
+ * @apiGroup 03.課程管理
  * @apiParam {Number} id 推薦課程ID
  * @apiSuccess {Object} course 推薦課程詳情
  * @apiError (404) NotFound 推薦課程不存在
@@ -299,9 +299,9 @@ router.get("/recommended/:id", authenticateToken, async (req, res) => {
 
 
 /**
- * @api {post} /api/v1/courses/recommended 推薦課程
+ * @api {post} /api/v1/courses/recommended 10.推薦課程
  * @apiName RecommendCourse
- * @apiGroup Course Recommended
+ * @apiGroup 03.課程管理
  * @apiParam {String} title 課程標題
  * @apiParam {String} description 課程描述
  * @apiParam {String} instructor 講者姓名
@@ -336,9 +336,9 @@ router.post("/recommended", authenticateToken, async (req, res) => {
 });
 
 /**
- * @api {put} /api/v1/courses/recommended/:id 編輯推薦課程
+ * @api {put} /api/v1/courses/recommended/:id 11.編輯推薦課程
  * @apiName EditRecommendedCourse
- * @apiGroup Course Recommended
+ * @apiGroup 03.課程管理
  * @apiParam {Number} id 推薦課程ID
  * @apiParam {String} [title] 課程標題
  * @apiParam {String} [description] 課程描述
@@ -388,37 +388,12 @@ router.put("/recommended/:id", authenticateToken, async (req, res) => {
 });
 
 
-/**
- * @api {post} /api/v1/courses/upload 上傳課程圖片
- * @apiName UploadCourseImage
- * @apiGroup Course
- * @apiParam {File} image 課程圖片
- * @apiSuccess {Object} imageUrl 上傳後的圖片URL
- * @apiError (500) InternalServerError 伺服器錯誤
- */
-router.post("/upload", authenticateToken, isAdmin, async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ message: COURSE_IMAGE_UPLOAD_MESSAGE.COURSE_IMAGE_UPLOAD_NOT_FOUND });
-    }
-    const imageUrl = await uploadMedia(req.file);
-    res.json({ imageUrl });
-  } catch (error) {
-    console.error("上傳課程圖片時發生錯誤:", error);
-    res.status(500).json({ message: COURSE_IMAGE_UPLOAD_MESSAGE.COURSE_IMAGE_UPLOAD_FAILED });
-  }
 
-  // 將路徑存入資料庫
-  const [updatedRows] = await models.Course.update(
-    { image_url: imageUrl },
-    { where: { id: req.params.id } }
-  );
-});
 
 /**
- * @api {put} /api/v1/courses/recommended/:id/approve 審核通過推薦課程
+ * @api {put} /api/v1/courses/recommended/:id/approve 12.審核通過推薦課程
  * @apiName ApproveRecommendedCourse
- * @apiGroup Course Recommended
+ * @apiGroup 03.課程管理
  * @apiParam {Number} id 推薦課程ID
  * @apiParam {String} title 課程標題
  * @apiParam {String} [description] 課程描述
@@ -510,9 +485,9 @@ router.put("/recommended/:id/approve", authenticateToken, isAdmin, async (req, r
 });
 
 /**
- * @api {put} /api/v1/courses/recommended/:id/reject 審核不通過推薦課程
+ * @api {put} /api/v1/courses/recommended/:id/reject 13.審核不通過推薦課程
  * @apiName RejectRecommendedCourse
- * @apiGroup Course Recommended
+ * @apiGroup 03.課程管理
  * @apiParam {Number} id 推薦課程ID
  * @apiSuccess {Object} message 審核結果消息
  * @apiError (404) NotFound 推薦課程不存在
@@ -551,5 +526,31 @@ router.put("/recommended/:id/reject", authenticateToken, isAdmin, async (req, re
   }
 });
 
+/**
+ * @api {post} /api/v1/courses/upload 14.上傳課程圖片
+ * @apiName UploadCourseImage
+ * @apiGroup 03.課程管理
+ * @apiParam {File} image 課程圖片
+ * @apiSuccess {Object} imageUrl 上傳後的圖片URL
+ * @apiError (500) InternalServerError 伺服器錯誤
+ */
+router.post("/upload", authenticateToken, isAdmin, async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: COURSE_IMAGE_UPLOAD_MESSAGE.COURSE_IMAGE_UPLOAD_NOT_FOUND });
+    }
+    const imageUrl = await uploadMedia(req.file);
+    res.json({ imageUrl });
+  } catch (error) {
+    console.error("上傳課程圖片時發生錯誤:", error);
+    res.status(500).json({ message: COURSE_IMAGE_UPLOAD_MESSAGE.COURSE_IMAGE_UPLOAD_FAILED });
+  }
+
+  // 將路徑存入資料庫
+  const [updatedRows] = await models.Course.update(
+    { image_url: imageUrl },
+    { where: { id: req.params.id } }
+  );
+});
 
 module.exports = router;

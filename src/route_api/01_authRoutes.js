@@ -10,7 +10,7 @@ const { authenticateToken, isAdmin } = require("../config/authMiddleware");
 const { AUTH_MESSAGE, COMMON_RESPONSE_MESSAGE, USER_ROLE, COMMON_RESPONSE_CODE } = require("../enum/commonEnum");
 
 /**
- * @api {post} /api/v1/admin/register 01-01.註冊管理員角色
+ * @api {post} /api/v1/auth/admin/register 01.註冊管理員角色
  * @apiName RegisterAdmin
  * @apiGroup 01.用戶認證和管理
  * @apiParam {String} username 用戶名
@@ -61,7 +61,7 @@ router.post("/admin/register", authenticateToken, isAdmin, async (req, res) => {
 
 
 /**
- * @api {post} /api/v1/register 01-02.一般用戶註冊
+ * @api {post} /api/v1/auth/register 02.一般用戶註冊
  * @apiName Register
  * @apiGroup 01.用戶認證和管理
  * @apiParam {String} username 用戶名
@@ -112,7 +112,7 @@ router.post("/register", async (req, res) => {
 });
 
 /**
- * @api {post} /api/v1/login 02-01.用戶登入/管理員登入
+ * @api {post} /api/v1/auth/login 03.用戶登入/管理員登入
  * @apiName AdminLogin
  * @apiGroup 01.用戶認證和管理
  * @apiParam {String} username 管理員用戶名
@@ -163,7 +163,7 @@ router.post("/login", async (req, res) => {
 });
 
 /**
- * @api {post} /api/v1/auth/send-otp 02-02.發送 OTP
+ * @api {post} /api/v1/auth/send-otp 04.發送 OTP
  * @apiName SendOTP
  * @apiGroup 01.用戶認證和管理
  * @apiParam {String} email 電子郵件
@@ -228,7 +228,7 @@ router.post("/send-otp", async (req, res) => {
 });
 
 /**
- * @api {post} /api/v1/auth/verify-otp 02-03.驗證 OTP
+ * @api {post} /api/v1/auth/verify-otp 05.驗證 OTP
  * @apiName VerifyOTP
  * @apiGroup 01.用戶認證和管理
  * @apiParam {String} email 電子郵件
@@ -278,112 +278,6 @@ router.post("/verify-otp", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(COMMON_RESPONSE_CODE.INTERNAL_SERVER_ERROR).json({ message: AUTH_MESSAGE.USER_LOGIN_FAILED });
-  }
-});
-
-/**
- * @api {get} /api/v1/admin/users 03.檢視用戶列表
- * @apiName GetUsers
- * @apiGroup 01.用戶認證和管理
- * @apiSuccess {Object[]} users 用戶列表
- * @apiSuccess {Number} users.id 用戶ID
- * @apiSuccess {String} users.username 用戶名
- * @apiSuccess {String} users.email 電子郵件
- * @apiSuccess {Date} users.createdAt 創建日期
- * @apiSuccess {Date} users.updatedAt 最後更新日期
- * @apiError (500) InternalServerError 伺服器錯誤
- */
-router.get("/users", authenticateToken, async (req, res) => {
-  try {
-    const users = await models.User.findAll({
-      attributes: { exclude: ["passwordHash"] }, // 排除 passwordHash 欄位
-    });
-    res.status(COMMON_RESPONSE_CODE.SUCCESS).send(users);
-  } catch (error) {
-    console.error(error);
-    res.status(COMMON_RESPONSE_CODE.INTERNAL_SERVER_ERROR).send({ message: COMMON_RESPONSE_MESSAGE.SERVER_ERROR });
-  }
-});
-
-/**
- * @api {get} /api/v1/admin/users/:id 04.獲取用戶資料
- * @apiName GetUserById
- * @apiGroup 01.用戶認證和管理
- * @apiParam {Number} id 用戶ID
- * @apiSuccess {Number} id 用戶ID
- * @apiSuccess {String} username 用戶名
- * @apiSuccess {String} email 電子郵件
- * @apiSuccess {Date} createdAt 創建日期
- * @apiSuccess {Date} updatedAt 最後更新日期
- * @apiError (404) NotFound 用戶不存在
- * @apiError (500) InternalServerError 伺服器錯誤
- */
-router.get("/users/:id", authenticateToken, async (req, res) => {
-  try {
-    const user = await models.User.findByPk(req.params.id, {
-      attributes: { exclude: ["passwordHash"] }, // 排除 passwordHash 欄位
-    });
-
-    if (!user) {
-      return res.status(COMMON_RESPONSE_CODE.SUCCESS).send({ message: AUTH_MESSAGE.USER_NOT_FOUND });
-    }
-    res.status(COMMON_RESPONSE_CODE.SUCCESS).send(user);
-  } catch (error) {
-    console.error(error);
-    res.status(COMMON_RESPONSE_CODE.INTERNAL_SERVER_ERROR).send({ message: COMMON_MESSAGE.SERVER_ERROR });
-  }
-});
-
-/**
- * @api {put} /api/v1/admin/users/:id 05.更新用戶資料
- * @apiName UpdateUser
- * @apiGroup 01.用戶認證和管理
- * @apiParam {Number} id 用戶ID
- * @apiParam {String} username 用戶名
- * @apiParam {String} email 電子郵件
- * @apiParam {String} role 用戶狀態 -1:banned 0:user 1:admin
- * @apiSuccess {String} message 更新成功消息
- * @apiError (404) NotFound 用戶不存在
- * @apiError (500) InternalServerError 伺服器錯誤
- */
-router.put("/users/:id", authenticateToken, async (req, res) => {
-  try {
-    const { username, email, role } = req.body;
-    const user = await models.User.findByPk(req.params.id);
-
-    if (!user) {
-      return res.status(COMMON_RESPONSE_CODE.SUCCESS).send({ message: AUTH_MESSAGE.USER_NOT_FOUND });
-    }
-
-    // 管理者可以更改所有人的資料，一般用戶只能更改自己的資料
-    if (req.user.role === USER_ROLE.ADMIN) {
-      // 管理者可以更新所有用戶的資料，包括角色
-      await user.update({ username, email, role });
-    } else if (req.user.role === USER_ROLE.USER) {
-      if (req.user.id === user.id) {
-        // 判斷有沒有其他使用者用同樣的username
-        const existingUser = await models.User.findOne({ where: { username } });
-        if (existingUser) {
-          return res.status(COMMON_RESPONSE_CODE.SUCCESS).send({ message: AUTH_MESSAGE.USERNAME_EXIST });
-        }
-        await user.update({ username });
-      } else {
-        // 一般用戶嘗試更新其他用戶的資料, 顯示權限不足
-        return res.send({ message: COMMON_RESPONSE_MESSAGE.FORBIDDEN });
-      }
-    } else {
-      // 未知角色
-      return res.status(COMMON_RESPONSE_CODE.BAD_REQUEST).send({ message: COMMON_RESPONSE_MESSAGE.BAD_REQUEST });
-    }
-
-    const userData = await models.User.findByPk(req.params.id, {
-      attributes: { exclude: ["passwordHash", "otp_code", "otpExpires"] },
-    });
-
-    res.status(COMMON_RESPONSE_CODE.SUCCESS).send({ message: AUTH_MESSAGE.USER_UPDATE_SUCCESS, data: userData });
-  } catch (error) {
-    console.error(error);
-    res.status(COMMON_RESPONSE_CODE.INTERNAL_SERVER_ERROR).send({ message: COMMON_RESPONSE_MESSAGE.INTERNAL_SERVER_ERROR });
   }
 });
 

@@ -7,8 +7,10 @@ const sequelize = require('./src/config/database');
 const bcrypt = require('bcrypt');
 const models = require('./src/models');
 const authRoutes = require('./src/route_api/01_authRoutes');
-const courseRoutes = require('./src/route_api/02_courseRoutes');
-const userRoutes = require('./src/route_api/03_userRoutes');
+const userRoutes = require('./src/route_api/02_userRoutes');
+const courseRoutes = require('./src/route_api/03_courseRoutes');
+const pointRoutes = require('./src/route_api/04_pointRoutes');
+const otherRoutes = require('./src/route_api/05_other');
 const app = express();
 const PORT = process.env.MAIN_NODE_PORT;
 const BASE_URL = process.env.BASE_URL;
@@ -25,9 +27,10 @@ app.set('views', path.join(__dirname, 'views'));
 
 // 路由
 app.use(BASE_URL + '/auth', authRoutes);
-app.use(BASE_URL + '/courses', courseRoutes);
 app.use(BASE_URL + '/users', userRoutes);
-
+app.use(BASE_URL + '/courses', courseRoutes);
+app.use(BASE_URL + '/points', pointRoutes);
+app.use(BASE_URL + '/other', otherRoutes);
 // 數據庫同步和服務器啟動
 (async () => {
   try {
