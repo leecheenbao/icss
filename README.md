@@ -75,3 +75,8 @@ PointsTransaction
 ``` shell
 sh init_data.sh
 ```
+### 更新文件
+透過apidoc生成api文件
+``` shell
+apidoc -i src -o icss-docs
+```
