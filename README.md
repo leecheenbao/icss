@@ -99,3 +99,10 @@ npm install -g apidoc
 ``` shell
 apidoc -i src -o icss-docs
 ```
+
+### 啟動服務
+腳本內會先啟動資料庫，約等待30秒資料庫初始化完成後啟動服務
+服務啟動時會先建立admin帳號，密碼為111111
+``` shell
+docker-compose up
+```
