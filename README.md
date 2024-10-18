@@ -85,11 +85,6 @@ PointsTransaction
 ### 郵件模板
 系統使用 HTML 郵件模板發送 OTP，模板定義在 src/templates/emails/OTP_EMAIL.js 中。
 
-### 初始化數據
-腳本方便用於開發時初始化數據
-``` shell
-sh init_data.sh
-```
 ### 更新文件
 透過apidoc生成api文件，要使用的話需要先安裝apidoc
 ``` shell
