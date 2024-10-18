@@ -144,5 +144,8 @@ dist
 db_data
 db_data/data-mariadb
 
+# google service account
+driven-slice-355713-18b46d63299a.json
+
 # End of https://www.toptal.com/developers/gitignore/api/node
 
