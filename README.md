@@ -101,8 +101,9 @@ apidoc -i src -o icss-docs
 ```
 
 ### 啟動服務
-腳本內會先啟動資料庫，約等待30秒資料庫初始化完成後啟動服務
-服務啟動時會先建立admin帳號，密碼為111111
+- docker-compose 會先啟動資料庫，約等待30秒資料庫初始化完成後啟動服務
+- 資料庫初始化會執行SQL_SCHEMA/init.sql 建立資料表
+- 服務啟動時會先建立admin帳號，密碼為111111
 ``` shell
-docker-compose up
+docker-compose up -d
 ```
