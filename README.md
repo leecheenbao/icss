@@ -60,7 +60,7 @@ npm run start:prod
 - 審核推薦課程：PUT /api/v1/courses/recommended/:id/approve
 - 審核不通過推薦課程：PUT /api/v1/courses/recommended/:id/reject
 - 上傳課程圖片：POST /api/v1/courses/upload
-  
+  - 員工選課
 #### 4.點數管理
 - 員工點數轉移：POST /api/v1/points/transfer
 - 手動發放點數：POST /api/v1/points/manual-points
@@ -76,7 +76,6 @@ User
 Course
 CourseRegistration
 RecommendedCourse
-Notification
 PointsTransaction
 這些模型之間的關係在 src/models/index.js 中定義。
 

@@ -5,7 +5,7 @@ const emailConfig = require("../config/email");
 const OTP_EMAIL = require("../templates/emails/OTP_EMAIL");
 const models = require("../models");
 const { now, generateToken } = require("../config/common");
-const { generateOTP, isOTPValid } = require("../utils/otpUtil");
+const { generateOTP } = require("../utils/otpUtil");
 const { authenticateToken, isAdmin } = require("../config/authMiddleware");
 const { AUTH_MESSAGE, COMMON_RESPONSE_MESSAGE, USER_ROLE, COMMON_RESPONSE_CODE } = require("../enum/commonEnum");
 

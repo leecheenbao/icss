@@ -25,6 +25,8 @@ CREATE TABLE courses (
     course_date DATE NOT NULL COMMENT '課程日期',
     image_url VARCHAR(255) COMMENT '課程圖片網址',
     max_participants INT COMMENT '最大報名人數',
+    early_bird_start_date DATE COMMENT '早鳥優惠開始日期',
+    early_bird_end_date DATE COMMENT '早鳥優惠結束日期',
     sign_up_start_date DATE NOT NULL COMMENT '報名開始日期',
     sign_up_end_date DATE NOT NULL COMMENT '報名截止日期',
     status INT DEFAULT 0 COMMENT '課程狀態 0:upcoming 1:closed 2:canceled',

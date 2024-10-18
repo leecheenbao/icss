@@ -1,7 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const { now } = require("../config/common");
 const models = require("../models");
+const GcsUploader = require("../utils/gcsUploader");
+const multer = require('multer');
+const upload = multer({ dest: "uploads/" });  
+const fs = require('fs');
 const { checkRequiredParams } = require("../utils/validationUtils");
 const { authenticateToken, isAdmin } = require("../config/authMiddleware");
 const {
@@ -11,8 +14,6 @@ const {
   COMMON_MESSAGE,
   COMMON_RESPONSE_CODE,
   COURSE_STATUS,
-  RECOMMENDED_COURSE_STATUS,
-  REGISTRATION_MESSAGE,
 } = require("../enum/commonEnum");
 
 /**
@@ -527,30 +528,45 @@ router.put("/recommended/:id/reject", authenticateToken, isAdmin, async (req, re
 });
 
 /**
- * @api {post} /api/v1/courses/upload 14.上傳課程圖片
+ * @api {post} /api/v1/courses/upload/:id 14.上傳課程圖片
  * @apiName UploadCourseImage
  * @apiGroup 03.課程管理
  * @apiParam {File} image 課程圖片
  * @apiSuccess {Object} imageUrl 上傳後的圖片URL
  * @apiError (500) InternalServerError 伺服器錯誤
  */
-router.post("/upload", authenticateToken, isAdmin, async (req, res) => {
+router.post("/upload/:id", authenticateToken, upload.single("image"), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: COURSE_IMAGE_UPLOAD_MESSAGE.COURSE_IMAGE_UPLOAD_NOT_FOUND });
     }
-    const imageUrl = await uploadMedia(req.file);
+
+    const recommendedCourse = await models.RecommendedCourse.findByPk(req.params.id);
+    if (!recommendedCourse) {
+      return res.status(404).json({ message: "找不到該課程" });
+    }
+
+    const gcsUploader = new GcsUploader(process.env.GCP_PROJECT_ID, process.env.GCP_KEY_FILENAME);
+    const imageUrl = await gcsUploader.uploadFile(
+      process.env.GCP_BUCKET_NAME, 
+      req.file.path, 
+      `courses/${req.params.id}/${req.file.filename}`
+    );
+
+    // 刪除臨時文件
+    fs.unlinkSync(req.file.path);
+
+    // 更新課程圖片URL
+    await models.RecommendedCourse.update(
+      { image_url: imageUrl },
+      { where: { id: req.params.id } }
+    );
+
     res.json({ imageUrl });
   } catch (error) {
     console.error("上傳課程圖片時發生錯誤:", error);
     res.status(500).json({ message: COURSE_IMAGE_UPLOAD_MESSAGE.COURSE_IMAGE_UPLOAD_FAILED });
   }
-
-  // 將路徑存入資料庫
-  const [updatedRows] = await models.Course.update(
-    { image_url: imageUrl },
-    { where: { id: req.params.id } }
-  );
 });
 
 module.exports = router;
