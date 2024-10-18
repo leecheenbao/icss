@@ -4,7 +4,7 @@ const path = require('path');
 const bodyParser = require('body-parser');
 require('dotenv').config();
 const sequelize = require('./src/config/database');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const models = require('./src/models');
 const authRoutes = require('./src/route_api/01_authRoutes');
 const userRoutes = require('./src/route_api/02_userRoutes');

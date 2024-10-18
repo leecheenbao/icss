@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const emailConfig = require("../config/email");
 const OTP_EMAIL = require("../templates/emails/OTP_EMAIL");
 const models = require("../models");

@@ -11,7 +11,7 @@ const upload = multer({ dest: "uploads/" });
 const createCsvWriter = require("csv-writer").createObjectCsvWriter;
 const { checkRequiredParams } = require("../utils/validationUtils");
 const { COMMON_RESPONSE_CODE } = require("../enum/commonEnum");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 
 /**
  * @api {get} /api/v1/users 01.檢視用戶列表
