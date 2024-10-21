@@ -102,3 +102,8 @@ apidoc -i src -o icss-docs
 ``` shell
 docker-compose up -d
 ```
+
+- windows 啟動docker-compose.windows.yml
+``` shell
+docker-compose -f docker-compose.windows.yml up -d
+```
